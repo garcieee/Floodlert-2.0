@@ -1,0 +1,37 @@
+/* Base Styles for the Application Window */
+QWidget {
+    font-family: Arial; /* Set the font for all widgets */
+    font-size: 14px;    /* Default font size */
+    background-color: #f0f0f0; /* Light gray background for the app */
+    margin: 10px;       /* Add some space around the widgets */
+}
+
+/* Style for Labels */
+QLabel {
+    font-size: 16px;    /* Slightly larger font size for labels */
+    margin-bottom: 5px; /* Add some space below each label */
+}
+
+/* Style for Input Fields (QLineEdit) */
+QLineEdit {
+    font-size: 14px;       /* Font size for text inputs */
+    padding: 5px;          /* Inner padding for better spacing */
+    border: 1px solid #ccc; /* Light gray border */
+    border-radius: 5px;    /* Rounded corners for inputs */
+    background-color: white; /* White background for inputs */
+}
+
+/* Style for Buttons */
+QPushButton {
+    font-size: 16px;       /* Font size for button text */
+    padding: 10px;         /* Padding inside the button */
+    background-color: #007BFF; /* Blue background */
+    color: white;          /* White text */
+    border-radius: 5px;    /* Rounded corners for buttons */
+    border: none;          /* Remove default border */
+}
+
+/* Hover Effect for Buttons */
+QPushButton:hover {
+    background-color: #0056b3; /* Darker blue when the button is hovered */
+}
