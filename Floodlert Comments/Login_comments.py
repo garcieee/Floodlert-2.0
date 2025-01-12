@@ -2,6 +2,7 @@ import sys  # Required to interact with the system, like reading command-line ar
 from PyQt5.QtWidgets import *  # Import all necessary PyQt5 widgets (e.g., buttons, labels, input fields)
 from PyQt5.QtCore import QFile, QTextStream  # Used to load and read the external stylesheet
 
+# First few changes
 # **Class Definition: LoginWindow**
 # This class defines the GUI for the login window and includes all functionality like input handling and login validation.
 class LoginWindow(QWidget):  # Inherit from QWidget, the base class for all PyQt5 windows
