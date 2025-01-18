@@ -96,6 +96,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contact
 
-- **Project Lead:** [Your Name]
-- **Email:** [Your Email]
-- **GitHub Repository:** [Repository Link](https://github.com/yourusername/FloodLert)
+- **Project Lead:** Jude Joseph Garcia jr
+- **Email:** judejosephgarciajr@gmail.com
+- **GitHub Repository:** https://github.com/garcieee/Floodlert-2.0.git
