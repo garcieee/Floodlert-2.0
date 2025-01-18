@@ -77,7 +77,7 @@ class LoginWindow(QWidget):
 
     def apply_stylesheet(self):
         """Load and apply the stylesheet."""
-        stylesheet_path = 'Floodlert Main/style.css'
+        stylesheet_path = 'style.css'
         try:
             with open(stylesheet_path, 'r') as f:
                 self.setStyleSheet(f.read())
