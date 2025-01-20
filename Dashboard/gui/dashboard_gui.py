@@ -12,7 +12,7 @@ class Dashboard(QWidget):
         self.initUI()
         
         # Apply the updated CSS to the dashboard
-        with open('Dashboard\\dashboard.css', 'r') as f:
+        with open('Dashboard\\css\\dashboard.css', 'r') as f:
             self.setStyleSheet(f.read())
 
     def initUI(self):

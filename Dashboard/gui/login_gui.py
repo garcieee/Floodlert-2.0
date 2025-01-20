@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
-from dashboard_gui import Dashboard  # Import the Dashboard class
+from dashboard_gui import Dashboard
 
 class LoginWindow(QWidget):
     def __init__(self):
@@ -77,7 +77,7 @@ class LoginWindow(QWidget):
 
     def apply_stylesheet(self):
         """Load and apply the stylesheet."""
-        stylesheet_path = 'Dashboard\\style.css'
+        stylesheet_path = 'Dashboard\\css\\login.css'
         try:
             with open(stylesheet_path, 'r') as f:
                 self.setStyleSheet(f.read())
