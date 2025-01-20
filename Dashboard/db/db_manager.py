@@ -3,12 +3,11 @@ import mysql.connector
 class DBManager:
     def __init__(self):
         try:
-            # Replace these credentials with your MySQL Workbench credentials
             self.conn = mysql.connector.connect(
                 host="localhost",
                 port=3306,
                 user="root
-                password="",    # Your MySQL password
+                password="", # MySQL password
                 database="floodlert_db"
             )
             self.cursor = self.conn.cursor(dictionary=True)
