@@ -7,9 +7,9 @@ class DBManager:
             self.conn = mysql.connector.connect(
                 host="localhost",
                 port=3306,
-                user="root",        # Your MySQL username
-                password="November_15_2004",    # Your MySQL password
-                database="floodlert_db"  # Your database name
+                user="root
+                password="",    # Your MySQL password
+                database="floodlert_db"
             )
             self.cursor = self.conn.cursor(dictionary=True)
             print("Database connection successful.")
