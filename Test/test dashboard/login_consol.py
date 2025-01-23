@@ -1,6 +1,5 @@
 from db_manager import DBManager
 
-
 class LoginConsole:
     def __init__(self):
         self.db_manager = DBManager()
