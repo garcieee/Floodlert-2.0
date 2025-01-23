@@ -1,23 +1,22 @@
 import sys
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QStackedWidget, QLabel, QPushButton, QFrame, QComboBox
-)
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QStackedWidget, QDesktopWidget)
 from PyQt5.QtCore import Qt
-
 
 class Dashboard(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
-        
-        # Apply the updated CSS to the dashboard
+
+        # Apply the updated CSS to the dashboard (if you have it)
         with open('Dashboard\\css\\dashboard.css', 'r') as f:
             self.setStyleSheet(f.read())
 
     def initUI(self):
         self.setWindowTitle("Dashboard")
         self.setGeometry(100, 100, 800, 600)
+        self.setMinimumSize(800, 600)
+        self.setMaximumSize(1200, 800)
+        self.center_window()
 
         # Main Layout
         self.main_layout = QVBoxLayout()
@@ -69,93 +68,59 @@ class Dashboard(QWidget):
         # Add to Top Layout
         self.top_layout.addWidget(self.time_of_day_frame, 1)
 
-        # Bottom Layout (Page Widget and Buttons)
-        self.bottom_layout = QVBoxLayout()  # Changed to QVBoxLayout
+        # Stacked Widget Section
+        self.stacked_widget = QStackedWidget()
+        self.flood_page = QLabel("Flood Information")
+        self.typhoon_page = QLabel("Typhoon Information")
 
-        # Page Widget (QStackedWidget)
-        self.page_box = QFrame()
-        self.page_box.setFrameShape(QFrame.StyledPanel)
-        self.page_box.setObjectName("page_box")  # For styling
-        self.page_box_layout = QVBoxLayout()
+        self.flood_page.setAlignment(Qt.AlignCenter)
+        self.typhoon_page.setAlignment(Qt.AlignCenter)
 
-        self.toggle_widget = QStackedWidget()
+        self.stacked_widget.addWidget(self.flood_page)
+        self.stacked_widget.addWidget(self.typhoon_page)
 
-        # Default Pages (Page 1 to Page 5)
-        for i in range(1, 6):
-            page = QLabel(f"Page {i}", self)
-            page.setAlignment(Qt.AlignCenter)
-            self.toggle_widget.addWidget(page)
+        # Bottom Layout (Buttons)
+        self.bottom_layout = QHBoxLayout()
 
-        self.page_box_layout.addWidget(self.toggle_widget)
-
-        # Add the Page Selector (ComboBox) inside the page box layout
-        self.page_selector_layout = QHBoxLayout()
-        self.page_selector_label = QLabel("Select Page:")
-        self.page_selector = QComboBox()
-        for i in range(1, 6):  # Five pages: Page 1 to Page 5
-            self.page_selector.addItem(f"Page {i}")
-        self.page_selector.currentIndexChanged.connect(self.change_page)
-
-        self.page_selector_layout.addWidget(self.page_selector_label)
-        self.page_selector_layout.addWidget(self.page_selector)
-
-        self.page_box_layout.addLayout(self.page_selector_layout)
-        self.page_box.setLayout(self.page_box_layout)
-
-        # Buttons on the Right (Flood and Typhoon)
-        self.buttons_frame = QFrame()
-        self.buttons_frame.setFrameShape(QFrame.StyledPanel)
-        self.buttons_frame.setObjectName("buttons_frame")  # For styling
-        self.buttons_layout = QVBoxLayout()
-
+        # Buttons at the Bottom
         self.flood_button = QPushButton("Flood")
         self.flood_button.setObjectName("flood_button")  # For styling
-        self.flood_button.clicked.connect(self.show_flood_widget)
+        self.flood_button.clicked.connect(self.show_flood_page)
 
         self.typhoon_button = QPushButton("Typhoon")
         self.typhoon_button.setObjectName("typhoon_button")  # For styling
-        self.typhoon_button.clicked.connect(self.show_typhoon_widget)
+        self.typhoon_button.clicked.connect(self.show_typhoon_page)
 
-        # Add buttons to the layout
-        self.buttons_layout.addStretch()
-        self.buttons_layout.addWidget(self.flood_button, alignment=Qt.AlignCenter)
-        self.buttons_layout.addWidget(self.typhoon_button, alignment=Qt.AlignCenter)
-        self.buttons_layout.addStretch()
-        self.buttons_frame.setLayout(self.buttons_layout)
+        self.settings_button = QPushButton("Settings")
+        self.settings_button.setObjectName("settings_button")  # For styling
+        self.settings_button.clicked.connect(self.show_settings)
 
-        # Add Page Box and Buttons to Bottom Layout
-        self.bottom_layout.addWidget(self.page_box, 3)
-        self.bottom_layout.addWidget(self.buttons_frame, 1)
+        # Add buttons to the bottom layout
+        self.bottom_layout.addWidget(self.flood_button)
+        self.bottom_layout.addWidget(self.typhoon_button)
+        self.bottom_layout.addWidget(self.settings_button)
 
-        # Add Top and Bottom Layouts to Main Layout
+        # Add everything to the Main Layout
         self.main_layout.addLayout(self.top_layout)
-        self.main_layout.addLayout(self.bottom_layout)
+        self.main_layout.addWidget(self.stacked_widget)
+        self.main_layout.addLayout(self.bottom_layout)  # Move buttons here
 
-        # Set Main Layout
         self.setLayout(self.main_layout)
 
-    def show_flood_widget(self):
-        # Show the default page (Page 1) when Flood is pressed
-        self.toggle_widget.setCurrentIndex(0)
-        self.page_selector.setCurrentIndex(0)  # Reset ComboBox to Page 1
+    def center_window(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
-    def show_typhoon_widget(self):
-        # Only add Typhoon Tracker page if it doesn't already exist
-        if self.toggle_widget.count() == 5:  # 5 pages exist, meaning Typhoon Tracker hasn't been added
-            typhoon_label = QLabel("World Typhoon Map Tracker", self)
-            typhoon_label.setAlignment(Qt.AlignCenter)  # Center the text
-            
-            # Add the new page to the stacked widget
-            self.toggle_widget.addWidget(typhoon_label)
-            
-            # Add the page to the combo box dynamically (after checking it's not already added)
-            self.page_selector.addItem("Typhoon Tracker")
-            self.page_selector.setCurrentIndex(self.page_selector.count() - 1)
+    def show_flood_page(self):
+        self.stacked_widget.setCurrentWidget(self.flood_page)
 
-    def change_page(self, index):
-        # Change the page based on ComboBox selection
-        self.toggle_widget.setCurrentIndex(index)
+    def show_typhoon_page(self):
+        self.stacked_widget.setCurrentWidget(self.typhoon_page)
 
+    def show_settings(self):
+        print("Settings button pressed!")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
