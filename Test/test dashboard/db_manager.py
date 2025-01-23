@@ -2,7 +2,7 @@ import mysql.connector
 
 
 class DBManager:
-    def __init__(self, host="localhost", user="root", password="November_15", database="floodlert_db"):
+    def __init__(self, host="localhost", user="root", password="", database="floodlert_db"):
         try:
             self.connection = mysql.connector.connect(
                 host=host,
