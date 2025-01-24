@@ -1,129 +1,97 @@
-import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QStackedWidget, QDesktopWidget)
-from PyQt5.QtCore import Qt
+import tkinter as tk
+from tkinter import ttk
 
-class Dashboard(QWidget):
+class Dashboard(tk.Tk):
     def __init__(self):
         super().__init__()
         self.initUI()
-
-        # Apply the updated CSS to the dashboard (if you have it)
-        with open('Dashboard\\css\\dashboard.css', 'r') as f:
-            self.setStyleSheet(f.read())
-
-    def initUI(self):
-        self.setWindowTitle("Dashboard")
-        self.setGeometry(100, 100, 800, 600)
-        self.setMinimumSize(800, 600)
-        self.setMaximumSize(1200, 800)
         self.center_window()
 
+    def initUI(self):
+        self.title("Dashboard")
+        self.geometry("800x600")
+        self.minsize(800, 600)
+        self.maxsize(1200, 800)
+
         # Main Layout
-        self.main_layout = QVBoxLayout()
+        self.main_frame = ttk.Frame(self)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
 
         # Top Layout (Weather, Time, City, Temperature)
-        self.top_layout = QHBoxLayout()
+        self.top_frame = ttk.Frame(self.main_frame)
+        self.top_frame.pack(fill=tk.X, pady=10)
 
         # Background Frame for Time of Day
-        self.time_of_day_frame = QFrame()
-        self.time_of_day_frame.setFrameShape(QFrame.StyledPanel)
-        self.time_of_day_frame.setObjectName("time_of_day_frame")  # For styling
-        self.time_of_day_layout = QHBoxLayout()
+        self.time_of_day_frame = ttk.Frame(self.top_frame)
+        self.time_of_day_frame.pack(fill=tk.X)
 
         # Weather Section
-        self.weather_frame = QFrame()
-        self.weather_frame.setFrameShape(QFrame.StyledPanel)
-        self.weather_frame.setObjectName("weather_frame")  # For styling
-        self.weather_layout = QVBoxLayout()
-
-        self.weather_label = QLabel("Weather (Static for now)")
-        self.weather_label.setAlignment(Qt.AlignCenter)
-        self.weather_layout.addWidget(self.weather_label)
-        self.weather_frame.setLayout(self.weather_layout)
+        self.weather_frame = ttk.Frame(self.time_of_day_frame)
+        self.weather_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.weather_label = ttk.Label(self.weather_frame, text="Weather (Static for now)", anchor="center")
+        self.weather_label.pack(padx=20, pady=10)
 
         # Time, City, Temp Section
-        self.info_frame = QFrame()
-        self.info_frame.setFrameShape(QFrame.StyledPanel)
-        self.info_frame.setObjectName("info_frame")  # For styling
-        self.info_layout = QVBoxLayout()
+        self.info_frame = ttk.Frame(self.time_of_day_frame)
+        self.info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.time_label = ttk.Label(self.info_frame, text="1:00 PM")
+        self.city_label = ttk.Label(self.info_frame, text="Tokyo")
+        self.temp_label = ttk.Label(self.info_frame, text="30°C")
 
-        self.time_label = QLabel("1:00 PM")  # Static placeholder for time
-        self.city_label = QLabel("Tokyo")    # Static placeholder for city
-        self.temp_label = QLabel("30°C")     # Static placeholder for temperature
+        self.time_label.pack(padx=20, pady=5)
+        self.city_label.pack(padx=20, pady=5)
+        self.temp_label.pack(padx=20, pady=5)
 
-        self.time_label.setAlignment(Qt.AlignCenter)
-        self.city_label.setAlignment(Qt.AlignCenter)
-        self.temp_label.setAlignment(Qt.AlignCenter)
+        # Stacked Widget Section (Using a notebook for page switching)
+        self.notebook = ttk.Notebook(self.main_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
 
-        self.info_layout.addWidget(self.time_label)
-        self.info_layout.addWidget(self.city_label)
-        self.info_layout.addWidget(self.temp_label)
-        self.info_frame.setLayout(self.info_layout)
+        self.flood_page = ttk.Frame(self.notebook)
+        self.flood_label = ttk.Label(self.flood_page, text="Flood Information", anchor="center")
+        self.flood_label.pack(fill=tk.BOTH, expand=True)
+        self.notebook.add(self.flood_page, text="Flood")
 
-        # Add Weather and Info Frames to Time of Day Layout
-        self.time_of_day_layout.addWidget(self.weather_frame, 1)
-        self.time_of_day_layout.addWidget(self.info_frame, 1)
-        self.time_of_day_frame.setLayout(self.time_of_day_layout)
-
-        # Add to Top Layout
-        self.top_layout.addWidget(self.time_of_day_frame, 1)
-
-        # Stacked Widget Section
-        self.stacked_widget = QStackedWidget()
-        self.flood_page = QLabel("Flood Information")
-        self.typhoon_page = QLabel("Typhoon Information")
-
-        self.flood_page.setAlignment(Qt.AlignCenter)
-        self.typhoon_page.setAlignment(Qt.AlignCenter)
-
-        self.stacked_widget.addWidget(self.flood_page)
-        self.stacked_widget.addWidget(self.typhoon_page)
+        self.typhoon_page = ttk.Frame(self.notebook)
+        self.typhoon_label = ttk.Label(self.typhoon_page, text="Typhoon Information", anchor="center")
+        self.typhoon_label.pack(fill=tk.BOTH, expand=True)
+        self.notebook.add(self.typhoon_page, text="Typhoon")
 
         # Bottom Layout (Buttons)
-        self.bottom_layout = QHBoxLayout()
+        self.bottom_frame = ttk.Frame(self.main_frame)
+        self.bottom_frame.pack(fill=tk.X, pady=10)
 
         # Buttons at the Bottom
-        self.flood_button = QPushButton("Flood")
-        self.flood_button.setObjectName("flood_button")  # For styling
-        self.flood_button.clicked.connect(self.show_flood_page)
+        self.flood_button = ttk.Button(self.bottom_frame, text="Flood", command=self.show_flood_page)
+        self.flood_button.pack(side=tk.LEFT, padx=20)
 
-        self.typhoon_button = QPushButton("Typhoon")
-        self.typhoon_button.setObjectName("typhoon_button")  # For styling
-        self.typhoon_button.clicked.connect(self.show_typhoon_page)
+        self.typhoon_button = ttk.Button(self.bottom_frame, text="Typhoon", command=self.show_typhoon_page)
+        self.typhoon_button.pack(side=tk.LEFT, padx=20)
 
-        self.settings_button = QPushButton("Settings")
-        self.settings_button.setObjectName("settings_button")  # For styling
-        self.settings_button.clicked.connect(self.show_settings)
-
-        # Add buttons to the bottom layout
-        self.bottom_layout.addWidget(self.flood_button)
-        self.bottom_layout.addWidget(self.typhoon_button)
-        self.bottom_layout.addWidget(self.settings_button)
-
-        # Add everything to the Main Layout
-        self.main_layout.addLayout(self.top_layout)
-        self.main_layout.addWidget(self.stacked_widget)
-        self.main_layout.addLayout(self.bottom_layout)  # Move buttons here
-
-        self.setLayout(self.main_layout)
-
-    def center_window(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        self.settings_button = ttk.Button(self.bottom_frame, text="Settings", command=self.show_settings)
+        self.settings_button.pack(side=tk.LEFT, padx=20)
 
     def show_flood_page(self):
-        self.stacked_widget.setCurrentWidget(self.flood_page)
+        self.notebook.select(self.flood_page)
 
     def show_typhoon_page(self):
-        self.stacked_widget.setCurrentWidget(self.typhoon_page)
+        self.notebook.select(self.typhoon_page)
 
     def show_settings(self):
         print("Settings button pressed!")
 
+    def center_window(self):
+        window_width = 800
+        window_height = 600
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        # Calculate position to center the window
+        position_top = int(screen_height / 2 - window_height / 2)
+        position_left = int(screen_width / 2 - window_width / 2)
+
+        # Set the window position
+        self.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
+
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
     dashboard = Dashboard()
-    dashboard.show()
-    sys.exit(app.exec_())
+    dashboard.mainloop()

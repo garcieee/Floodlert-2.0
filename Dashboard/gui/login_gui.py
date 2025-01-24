@@ -1,100 +1,132 @@
-import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QFrame)
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QGuiApplication
+import tkinter as tk
+from tkinter import messagebox
+from db import DBManager
 from dashboard_gui import Dashboard
 
-from db import DBManager
-
-class LoginWindow(QWidget):
+class LoginWindow(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        # Apply the updated CSS to the login window
-        with open('Dashboard\\css\\login.css', 'r') as f:
-            self.setStyleSheet(f.read())
+        print("Initializing LoginWindow...")
 
-        # Initialize the database manager
-        self.db_manager = DBManager()
-
-        self.initUI()
-
-    def initUI(self):
-        self.setWindowTitle('Login')
-        self.setGeometry(100, 100, 800, 600)
-        self.setMinimumSize(800, 600)
-        self.setMaximumSize(1200, 800)
+        self.title('Login')
+        self.geometry('800x600')
         self.center_window()
 
-        # Create a main layout
-        self.main_layout = QVBoxLayout()
+        try:
+            print("Initializing DBManager...")
+            self.db_manager = DBManager()  # Initialize the DBManager
+            print("DBManager initialized.")
+        except Exception as e:
+            print(f"Failed to initialize DBManager: {e}")
+            messagebox.showerror('Error', f"Failed to initialize DBManager: {e}")
+            self.quit()
 
-        # Center Frame
-        self.center_frame = QFrame()
-        self.center_frame.setObjectName("center_frame")
-        self.center_frame.setStyleSheet(
-            "QFrame#center_frame { background-color: #f0f0f0; border-radius: 10px; padding: 20px; }"
+        print("Setting up layout...")
+        self.main_frame = tk.Frame(self, bg='#1e1e2f')
+        self.main_frame.pack(fill='both', expand=True)
+
+        # Create center frame with similar styles to your CSS
+        self.center_frame = tk.Frame(self.main_frame, bg='#2d2d3c', bd=1, relief='solid')
+        self.center_frame.pack(padx=20, pady=20, fill='both', expand=True)
+
+        self.center_frame.config(
+            bg='#2d2d3c', 
+            borderwidth=2, 
+            relief="solid", 
+            bd=2
         )
-        self.center_frame_layout = QVBoxLayout()
 
-        # Username Label and Input
-        self.username_label = QLabel('Username:')
-        self.username_input = QLineEdit()
-        self.center_frame_layout.addWidget(self.username_label)
-        self.center_frame_layout.addWidget(self.username_input)
+        # Login Form
+        self.username_input = tk.Entry(self.center_frame, font=('Segoe UI', 14), fg='white', bg='#3e4451', bd=1, relief='solid', insertbackground='white')
+        self.username_input.insert(0, 'Username')
+        self.username_input.bind("<FocusIn>", self.clear_placeholder)
+        self.username_input.config(
+            fg='white',
+            bg='#3e4451',
+            font=('Segoe UI', 14),
+            bd=1,
+            relief='solid',
+            insertbackground='white',
+            highlightthickness=0
+        )
+        self.username_input.pack(pady=10, ipadx=10, fill='x', padx=10)
 
-        # Password Label and Input
-        self.password_label = QLabel('Password:')
-        self.password_input = QLineEdit()
-        self.password_input.setEchoMode(QLineEdit.Password)
-        self.center_frame_layout.addWidget(self.password_label)
-        self.center_frame_layout.addWidget(self.password_input)
+        self.password_input = tk.Entry(self.center_frame, font=('Segoe UI', 14), fg='white', bg='#3e4451', bd=1, relief='solid', show='*', insertbackground='white')
+        self.password_input.insert(0, 'Password')
+        self.password_input.bind("<FocusIn>", self.clear_placeholder)
+        self.password_input.config(
+            fg='white',
+            bg='#3e4451',
+            font=('Segoe UI', 14),
+            bd=1,
+            relief='solid',
+            insertbackground='white',
+            highlightthickness=0
+        )
+        self.password_input.pack(pady=10, ipadx=10, fill='x', padx=10)
 
-        # Login Button
-        self.login_button = QPushButton('Login')
-        self.login_button.clicked.connect(self.handle_login)
-        self.center_frame_layout.addWidget(self.login_button, alignment=Qt.AlignCenter)
+        self.login_button = tk.Button(self.center_frame, text='Login', command=self.handle_login, font=('Segoe UI', 12), bg='#4d78cc', fg='white', bd=0, relief='solid', width=20)
+        self.login_button.config(
+            bg='#4d78cc',
+            fg='white',
+            font=('Segoe UI', 12),
+            relief='solid',
+            bd=0,
+            width=20
+        )
+        self.login_button.pack(pady=20)
 
-        # Set layout to center frame and add it to main layout
-        self.center_frame.setLayout(self.center_frame_layout)
-        self.main_layout.addWidget(self.center_frame, alignment=Qt.AlignCenter)
+        self.login_button.bind('<Enter>', lambda event: self.on_hover(self.login_button, hover=True))
+        self.login_button.bind('<Leave>', lambda event: self.on_hover(self.login_button, hover=False))
 
-        # Set main layout to the window
-        self.setLayout(self.main_layout)
+        print("LoginWindow initialized.")
+
+    def clear_placeholder(self, event):
+        if event.widget.get() in ('Username', 'Password'):
+            event.widget.delete(0, tk.END)
+        event.widget.config(show='*' if event.widget.get() == 'Password' else '')
 
     def handle_login(self):
-        username = self.username_input.text()
-        password = self.password_input.text()
+        username = self.username_input.get()
+        password = self.password_input.get()
 
+        print("Verifying admin credentials...")
         try:
-            # Verify credentials using the DBManager
             admin = self.db_manager.verify_admin_credentials(username, password)
             if admin:
-                QMessageBox.information(self, 'Success', 'Login successful!')
-                self.username_input.clear()
-                self.password_input.clear()
-                self.open_dashboard()  # Open the dashboard when login is successful
+                self.username_input.delete(0, tk.END)
+                self.password_input.delete(0, tk.END)
+                self.open_dashboard()
             else:
-                QMessageBox.warning(self, 'Error', 'Invalid username or password.')
-                self.password_input.clear()
+                messagebox.showwarning('Error', 'Invalid username or password.')
+                self.password_input.delete(0, tk.END)
         except Exception as e:
-            QMessageBox.critical(self, 'Error', f"An error occurred: {str(e)}")
+            print(f"Error during login: {e}")
+            messagebox.showerror('Error', f"An error occurred: {str(e)}")
 
     def open_dashboard(self):
-        # Create an instance of the Dashboard window and show it
-        self.dashboard = Dashboard()
-        self.dashboard.show()
-        self.close()  # Close the login window
+        print("Opening dashboard...")
+        self.destroy()  # Close the login window
+        dashboard = Dashboard()
+        dashboard.mainloop()  # Start the main loop for the dashboard
 
     def center_window(self):
-        qr = self.frameGeometry()
-        cp = QGuiApplication.primaryScreen().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
+    def on_hover(self, widget, hover):
+        if hover:
+            widget.config(bg='#5a9bd5')
+        else:
+            widget.config(bg='#4d78cc')
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = LoginWindow()
-    window.show()
-    sys.exit(app.exec_())
+    print("Starting application...")
+    app = LoginWindow()
+    app.mainloop()
+    print("Login window closed, opening dashboard...")
