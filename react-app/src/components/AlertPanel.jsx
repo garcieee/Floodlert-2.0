@@ -10,46 +10,65 @@ import {
 } from '@mui/material'
 import { format } from 'date-fns'
 
-function AlertPanel({ alerts, weatherData, selectedRegion }) {
+function AlertPanel({ alerts }) {
   return (
-    <Paper sx={{ width: 350, p: 2, overflowY: 'auto' }}>
+    <Paper sx={{ 
+      width: 350, 
+      height: '100%', 
+      overflowY: 'auto',
+      p: 2,
+      backgroundColor: 'rgba(255, 255, 255, 0.9)'
+    }}>
       <Typography variant="h6" gutterBottom>
         Flood Alerts
-        {selectedRegion && ` - ${selectedRegion}`}
       </Typography>
       
-      {weatherData && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1">Current Weather</Typography>
-          <Typography>Temperature: {weatherData.temperature}°C</Typography>
-          <Typography>Rainfall: {weatherData.rainfall}mm</Typography>
-        </Box>
-      )}
-      
-      <Divider sx={{ my: 2 }} />
-      
       <List>
-        {alerts.map((alert) => (
-          <ListItem key={alert.id} divider>
-            <ListItemText
-              primary={alert.location}
-              secondary={
-                <>
-                  <Chip 
-                    size="small" 
-                    label={alert.severity}
-                    color={alert.severity === 'high' ? 'error' : 'warning'}
-                    sx={{ mr: 1 }}
-                  />
-                  {format(new Date(alert.timestamp), 'PPp')}
-                  <Typography variant="body2">
-                    {alert.description}
-                  </Typography>
-                </>
-              }
-            />
+        {alerts.length === 0 ? (
+          <ListItem>
+            <ListItemText primary="No alerts match the current filters" />
           </ListItem>
-        ))}
+        ) : (
+          alerts.map((alert) => (
+            <ListItem key={alert.id} divider>
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    {alert.location}
+                    <Chip 
+                      size="small" 
+                      label={alert.severity.toUpperCase()}
+                      color={
+                        alert.severity === 'high' ? 'error' : 
+                        alert.severity === 'medium' ? 'warning' : 
+                        'success'
+                      }
+                    />
+                  </Box>
+                }
+                secondary={
+                  <>
+                    <Typography variant="body2" color="text.secondary">
+                      Region: {alert.region}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Water Level: {alert.waterLevel}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Rainfall: {alert.rainfall}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Time: {format(alert.timestamp, 'PPp')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      {alert.description}
+                    </Typography>
+                  </>
+                }
+              />
+            </ListItem>
+          ))
+        )}
       </List>
     </Paper>
   )

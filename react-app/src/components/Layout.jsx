@@ -21,11 +21,6 @@ function Layout() {
             alerts={alerts}
           />
         </Box>
-        <AlertPanel 
-          alerts={alerts}
-          weatherData={weatherData}
-          selectedRegion={selectedRegion}
-        />
       </Container>
     </Box>
   )
