@@ -5,7 +5,7 @@ function Header() {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">
-          Floodlert - Philippines Flood Alert System
+          Floodlert
         </Typography>
       </Toolbar>
     </AppBar>

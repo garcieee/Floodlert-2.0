@@ -1,6 +1,6 @@
 // src/components/MapComponent.jsx
-import { useEffect, useState, useMemo } from 'react'
-import { MapContainer, TileLayer, Circle, Popup, LayerGroup, Marker } from 'react-leaflet'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { MapContainer, TileLayer, Circle, Popup, LayerGroup, Marker, useMap } from 'react-leaflet'
 import { 
   Box, 
   Typography, 
@@ -17,7 +17,11 @@ import {
   ListItemText,
   Chip,
   IconButton,
-  Collapse
+  Collapse,
+  Slide,
+  useTheme,
+  useMediaQuery,
+  ThemeProvider
 } from '@mui/material'
 import { format } from 'date-fns'
 import 'leaflet/dist/leaflet.css'
@@ -25,8 +29,18 @@ import L from 'leaflet'
 import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  FilterList as FilterListIcon
+  FilterList as FilterListIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronLeft as ChevronLeftIcon,
+  Notifications as NotificationsIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Close as CloseIcon,
+  Brightness4 as Brightness4Icon,
+  Brightness7 as Brightness7Icon
 } from '@mui/icons-material'
+import { Fab } from '@mui/material'
+import { divIcon } from 'leaflet'
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl
@@ -101,23 +115,96 @@ const mockAlerts = [
   }
 ]
 
+// Add this new component to handle map movements
+function MapController({ center, zoom }) {
+  const map = useMap()
+  
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom || 8, {
+        duration: 1.5, // Animation duration in seconds
+        easeLinearity: 0.25
+      })
+    }
+  }, [center, zoom, map])
+
+  return null
+}
+
 function MapComponent() {
-  const [displayType, setDisplayType] = useState('circles')
   const [selectedRegion, setSelectedRegion] = useState('All')
   const [selectedSeverity, setSelectedSeverity] = useState('All')
   const [timeRange, setTimeRange] = useState(7) // days
-  const [isControlsOpen, setIsControlsOpen] = useState(true)
+  const [isControlsOpen, setIsControlsOpen] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [isAlertPanelOpen, setIsAlertPanelOpen] = useState(true)
 
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+
+  const alertPanelWidth = isMobile ? '100%' : isTablet ? '400px' : '350px'
+
+  // Custom marker icon with larger size
+  const getCustomMarkerIcon = (severity) => {
+    const color = severity === 'high' ? '#ff0000' : 
+                 severity === 'medium' ? '#ffa500' : '#ffff00';
+    
+    const markerHtml = `
+      <div style="
+        background-color: ${color};
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 4px rgba(0,0,0,0.4);
+      "></div>
+    `;
+
+    return divIcon({
+      html: markerHtml,
+      className: 'custom-marker',
+      iconSize: [25, 25],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12]
+    });
+  };
+
+  // Updated getSeverityStyle function with larger circles
   const getSeverityStyle = (severity) => {
     switch (severity.toLowerCase()) {
       case 'high':
-        return { color: 'red', fillColor: '#ff0000', fillOpacity: 0.5, radius: 150000 }
+        return { 
+          color: 'red', 
+          fillColor: '#ff0000', 
+          fillOpacity: 0.6, 
+          weight: 2,
+          radius: 200000 // Increased radius
+        }
       case 'medium':
-        return { color: 'orange', fillColor: '#ffa500', fillOpacity: 0.5, radius: 120000 }
+        return { 
+          color: 'orange', 
+          fillColor: '#ffa500', 
+          fillOpacity: 0.6, 
+          weight: 2,
+          radius: 170000 // Increased radius
+        }
       case 'low':
-        return { color: 'yellow', fillColor: '#ffff00', fillOpacity: 0.5, radius: 100000 }
+        return { 
+          color: 'yellow', 
+          fillColor: '#ffff00', 
+          fillOpacity: 0.6, 
+          weight: 2,
+          radius: 150000 // Increased radius
+        }
       default:
-        return { color: 'blue', fillColor: '#0000ff', fillOpacity: 0.5, radius: 100000 }
+        return { 
+          color: 'blue', 
+          fillColor: '#0000ff', 
+          fillOpacity: 0.6, 
+          weight: 2,
+          radius: 150000 
+        }
     }
   }
 
@@ -133,9 +220,10 @@ function MapComponent() {
     })
   }, [selectedRegion, selectedSeverity, timeRange])
 
+  // Updated renderAlert function
   const renderAlert = (alert) => {
     const popupContent = (
-      <div>
+      <div style={{ minWidth: '200px', padding: '8px' }}>
         <Typography variant="h6" sx={{ mb: 1 }}>{alert.location}</Typography>
         <Divider />
         <Box sx={{ mt: 1 }}>
@@ -149,241 +237,357 @@ function MapComponent() {
       </div>
     )
 
-    if (displayType === 'markers') {
-      return (
-        <Marker key={alert.id} position={alert.coordinates}>
-          <Popup>{popupContent}</Popup>
-        </Marker>
-      )
-    } else {
-      return (
-        <Circle
-          key={alert.id}
-          center={alert.coordinates}
-          pathOptions={getSeverityStyle(alert.severity)}
-        >
-          <Popup>{popupContent}</Popup>
-        </Circle>
-      )
-    }
+    return (
+      <Marker 
+        key={alert.id} 
+        position={alert.coordinates}
+        icon={getCustomMarkerIcon(alert.severity)}
+        eventHandlers={{
+          click: () => handleAlertClick(alert.coordinates)
+        }}
+      >
+        <Popup className="custom-popup">
+          {popupContent}
+        </Popup>
+      </Marker>
+    )
+  }
+
+  // Function to handle alert selection
+  const handleAlertClick = (coordinates) => {
+    setSelectedLocation(coordinates)
   }
 
   return (
-    <Box sx={{ height: '100%', position: 'relative', display: 'flex' }}>
-      {/* Main map and controls container */}
-      <Box sx={{ flexGrow: 1, height: '100%', position: 'relative' }}>
-        {/* Collapsible Controls Panel */}
-        <Paper sx={{ 
-          position: 'absolute', 
-          top: 10, 
-          left: 50,
-          zIndex: 1000,
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          maxWidth: 300,
-          ml: 3,
-          overflow: 'hidden' // Ensure clean collapse animation
-        }}>
-          {/* Header with collapse button */}
-          <Box sx={{ 
-            p: 1, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            borderBottom: isControlsOpen ? 1 : 0,
-            borderColor: 'divider'
+    <ThemeProvider theme={theme}>
+      <Box sx={{ height: '100%', position: 'relative' }}>
+        {/* Map container - now takes full width */}
+        <Box sx={{ height: '100%', width: '100%' }}>
+          {/* Collapsible Controls Panel - Responsive */}
+          <Paper sx={{ 
+            position: 'absolute', 
+            top: 10,
+            left: 50,
+            zIndex: 1000,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            width: 'auto',
+            maxWidth: 300,
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FilterListIcon />
-              <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>
-                Flood Alert Controls
-              </Typography>
+            {/* Controls Panel Header */}
+            <Box sx={{ 
+              p: 1.5,
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              borderBottom: isControlsOpen ? 1 : 0,
+              borderColor: 'divider'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FilterListIcon />
+                <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>
+                  Marker Filters
+                </Typography>
+              </Box>
+              <IconButton 
+                onClick={() => setIsControlsOpen(!isControlsOpen)}
+                size="small"
+              >
+                {isControlsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </Box>
-            <IconButton 
-              onClick={() => setIsControlsOpen(!isControlsOpen)}
-              size="small"
+
+            {/* Collapsible content */}
+            <Collapse in={isControlsOpen}>
+              <Box sx={{ p: 2 }}>
+                <Stack spacing={2}>
+                  <FormControl size="small">
+                    <InputLabel>Region</InputLabel>
+                    <Select
+                      value={selectedRegion}
+                      label="Region"
+                      onChange={(e) => setSelectedRegion(e.target.value)}
+                    >
+                      {regions.map(region => (
+                        <MenuItem key={region} value={region}>{region}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl size="small">
+                    <InputLabel>Severity</InputLabel>
+                    <Select
+                      value={selectedSeverity}
+                      label="Severity"
+                      onChange={(e) => setSelectedSeverity(e.target.value)}
+                    >
+                      {severityLevels.map(level => (
+                        <MenuItem key={level} value={level}>{level}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <Box>
+                    <Typography gutterBottom>Time Range (Days)</Typography>
+                    <Slider
+                      value={timeRange}
+                      onChange={(e, value) => setTimeRange(value)}
+                      valueLabelDisplay="auto"
+                      min={1}
+                      max={7}
+                      marks
+                      valueLabelFormat={(value) => `${value}d`}
+                    />
+                  </Box>
+                </Stack>
+              </Box>
+            </Collapse>
+          </Paper>
+
+          {/* Map - now takes full width */}
+          <MapContainer
+            center={WORLD_CENTER}
+            zoom={DEFAULT_ZOOM}
+            style={{ height: '100%', width: '100%' }}
+            minZoom={2}
+            maxBounds={[[-90, -180], [90, 180]]}
+            zoomControl={!isMobile}
+          >
+            {isMobile && (
+              <Box sx={{ 
+                position: 'absolute',
+                bottom: isControlsOpen ? '50%' : 70,
+                right: 10,
+                zIndex: 1000,
+                transition: 'bottom 0.3s ease'
+              }}>
+                {/* Custom zoom controls for mobile */}
+                <Stack spacing={1}>
+                  <IconButton
+                    onClick={() => map.zoomIn()}
+                    sx={{ backgroundColor: 'white', '&:hover': { backgroundColor: 'white' } }}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => map.zoomOut()}
+                    sx={{ backgroundColor: 'white', '&:hover': { backgroundColor: 'white' } }}
+                  >
+                    <RemoveIcon />
+                  </IconButton>
+                </Stack>
+              </Box>
+            )}
+            <MapController center={selectedLocation} zoom={8} />
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              noWrap={true}
+            />
+            
+            <LayerGroup>
+              {filteredAlerts.map(alert => renderAlert(alert))}
+            </LayerGroup>
+          </MapContainer>
+        </Box>
+
+        {/* Collapse toggle button - Responsive */}
+        {!isMobile && (
+          <Box
+            sx={{
+              position: 'absolute',
+              right: isAlertPanelOpen ? alertPanelWidth : 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 1200,
+              transition: 'right 0.3s ease'
+            }}
+          >
+            <IconButton
+              onClick={() => setIsAlertPanelOpen(!isAlertPanelOpen)}
+              sx={{
+                backgroundColor: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                },
+                boxShadow: 2,
+                borderRadius: '4px',
+                borderTopRightRadius: isAlertPanelOpen ? 0 : '4px',
+                borderBottomRightRadius: isAlertPanelOpen ? 0 : '4px',
+                borderTopLeftRadius: isAlertPanelOpen ? '4px' : 0,
+                borderBottomLeftRadius: isAlertPanelOpen ? '4px' : 0,
+              }}
             >
-              {isControlsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              {isAlertPanelOpen ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
           </Box>
+        )}
 
-          {/* Collapsible content */}
-          <Collapse in={isControlsOpen}>
-            <Box sx={{ p: 2 }}>
-              <Stack spacing={2}>
-                <FormControl size="small">
-                  <InputLabel>Display Type</InputLabel>
-                  <Select
-                    value={displayType}
-                    label="Display Type"
-                    onChange={(e) => setDisplayType(e.target.value)}
-                  >
-                    <MenuItem value="markers">Markers</MenuItem>
-                    <MenuItem value="circles">Circles</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl size="small">
-                  <InputLabel>Region</InputLabel>
-                  <Select
-                    value={selectedRegion}
-                    label="Region"
-                    onChange={(e) => setSelectedRegion(e.target.value)}
-                  >
-                    {regions.map(region => (
-                      <MenuItem key={region} value={region}>{region}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl size="small">
-                  <InputLabel>Severity</InputLabel>
-                  <Select
-                    value={selectedSeverity}
-                    label="Severity"
-                    onChange={(e) => setSelectedSeverity(e.target.value)}
-                  >
-                    {severityLevels.map(level => (
-                      <MenuItem key={level} value={level}>{level}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Box>
-                  <Typography gutterBottom>Time Range (Days)</Typography>
-                  <Slider
-                    value={timeRange}
-                    onChange={(e, value) => setTimeRange(value)}
-                    valueLabelDisplay="auto"
-                    min={1}
-                    max={7}
-                    marks
-                    valueLabelFormat={(value) => `${value}d`}
-                  />
-                </Box>
-
-                {/* Legend */}
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>Legend</Typography>
-                  <Stack spacing={1}>
-                    <Box display="flex" alignItems="center">
-                      <Box sx={{ width: 20, height: 20, backgroundColor: '#ff0000', borderRadius: '50%', mr: 1 }} />
-                      <Typography variant="body2">High Severity</Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center">
-                      <Box sx={{ width: 20, height: 20, backgroundColor: '#ffa500', borderRadius: '50%', mr: 1 }} />
-                      <Typography variant="body2">Medium Severity</Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center">
-                      <Box sx={{ width: 20, height: 20, backgroundColor: '#ffff00', borderRadius: '50%', mr: 1 }} />
-                      <Typography variant="body2">Low Severity</Typography>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Stack>
-            </Box>
-          </Collapse>
-        </Paper>
-
-        {/* Map with custom zoom control position */}
-        <MapContainer
-          center={WORLD_CENTER}
-          zoom={DEFAULT_ZOOM}
-          style={{ height: '100%', width: '100%' }}
-          minZoom={2}
-          maxBounds={[[-90, -180], [90, 180]]}
-          zoomControl={false} // Disable default zoom control
+        {/* Alert Panel - Responsive */}
+        <Slide 
+          direction={isMobile ? 'up' : 'left'} 
+          in={isAlertPanelOpen} 
+          mountOnEnter 
+          unmountOnExit
         >
-          {/* Add zoom control in custom position */}
-          <div className="leaflet-control-container">
-            <div className="leaflet-top leaflet-left">
-              <div className="leaflet-control-zoom leaflet-bar leaflet-control">
-                <a className="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in">+</a>
-                <a className="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out">−</a>
-              </div>
-            </div>
-          </div>
+          <Paper sx={{ 
+            width: alertPanelWidth,
+            height: isMobile ? '70%' : '100%',
+            position: 'absolute',
+            right: 0,
+            [isMobile ? 'bottom' : 'top']: 0,
+            overflowY: 'auto',
+            p: 2,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            zIndex: 1100,
+            boxShadow: 3,
+            borderRadius: isMobile ? '12px 12px 0 0' : 0,
+          }}>
+            {/* Mobile close button */}
+            {isMobile && (
+              <IconButton
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: 8,
+                }}
+                onClick={() => setIsAlertPanelOpen(false)}
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
 
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            noWrap={true}
-          />
-          
-          <LayerGroup>
-            {filteredAlerts.map(alert => renderAlert(alert))}
-          </LayerGroup>
-        </MapContainer>
+            {/* Alert Panel Header */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1, 
+              mb: 2,
+              borderBottom: 1,
+              borderColor: 'divider',
+              pb: 1,
+              pr: isMobile ? 4 : 0
+            }}>
+              <NotificationsIcon />
+              <Typography variant="h6">
+                Flood Alerts
+              </Typography>
+            </Box>
+
+            {/* Alert List */}
+            <List sx={{
+              pt: 0,
+              '& .MuiListItem-root': {
+                px: { xs: 1, sm: 2 },
+                py: { xs: 1.5, sm: 2 }
+              }
+            }}>
+              {filteredAlerts.length === 0 ? (
+                <ListItem>
+                  <ListItemText primary="No alerts match the current filters" />
+                </ListItem>
+              ) : (
+                filteredAlerts.map((alert) => (
+                  <ListItem 
+                    key={alert.id} 
+                    divider
+                    button 
+                    onClick={() => handleAlertClick(alert.coordinates)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                      backgroundColor: selectedLocation === alert.coordinates ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          {alert.location}
+                          <Chip 
+                            size="small" 
+                            label={alert.severity.toUpperCase()}
+                            color={
+                              alert.severity === 'high' ? 'error' : 
+                              alert.severity === 'medium' ? 'warning' : 
+                              'warning'
+                            }
+                            sx={{
+                              ...(alert.severity === 'low' && {
+                                backgroundColor: '#ffff00',
+                                color: 'rgba(0, 0, 0, 0.87)',
+                              })
+                            }}
+                          />
+                        </Box>
+                      }
+                      secondary={
+                        <>
+                          <Typography variant="body2" color="text.secondary">
+                            Region: {alert.region}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Water Level: {alert.waterLevel}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Rainfall: {alert.rainfall}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Time: {format(alert.timestamp, 'PPp')}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            {alert.description}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  </ListItem>
+                ))
+              )}
+            </List>
+          </Paper>
+        </Slide>
+
+        {/* Mobile Alert Panel Toggle Button */}
+        {isMobile && !isAlertPanelOpen && (
+          <Fab
+            color="primary"
+            sx={{
+              position: 'absolute',
+              right: 16,
+              bottom: isControlsOpen ? '50%' : 76,
+              transition: 'bottom 0.3s ease',
+              zIndex: 1200
+            }}
+            onClick={() => setIsAlertPanelOpen(true)}
+          >
+            <NotificationsIcon />
+          </Fab>
+        )}
       </Box>
-
-      {/* Alert Panel */}
-      <Paper sx={{ 
-        width: 350, 
-        height: '100%', 
-        overflowY: 'auto',
-        p: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)'
-      }}>
-        <Typography variant="h6" gutterBottom>
-          Flood Alerts
-        </Typography>
-        
-        <List>
-          {filteredAlerts.length === 0 ? (
-            <ListItem>
-              <ListItemText primary="No alerts match the current filters" />
-            </ListItem>
-          ) : (
-            filteredAlerts.map((alert) => (
-              <ListItem key={alert.id} divider>
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      {alert.location}
-                      <Chip 
-                        size="small" 
-                        label={alert.severity.toUpperCase()}
-                        color={
-                          alert.severity === 'high' ? 'error' : 
-                          alert.severity === 'medium' ? 'warning' : 
-                          'success'
-                        }
-                      />
-                    </Box>
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="body2" color="text.secondary">
-                        Region: {alert.region}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Water Level: {alert.waterLevel}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Rainfall: {alert.rainfall}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Time: {format(alert.timestamp, 'PPp')}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        {alert.description}
-                      </Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-            ))
-          )}
-        </List>
-      </Paper>
-    </Box>
+    </ThemeProvider>
   )
 }
 
-// Add some custom CSS to ensure proper zoom control styling
+// Add these styles to your CSS
 const styles = `
-  .leaflet-control-zoom {
-    margin-left: 10px !important;
-    margin-top: 10px !important;
+  .custom-marker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .custom-popup .leaflet-popup-content {
+    margin: 8px;
+    min-width: 200px;
+  }
+
+  .custom-popup .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+  }
+
+  .leaflet-container {
+    font: inherit;
   }
 `;
 
