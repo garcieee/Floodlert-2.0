@@ -38,7 +38,7 @@ function AlertPanel({ alerts, weatherData, selectedRegion }) {
                   <Chip 
                     size="small" 
                     label={alert.severity}
-                    color={getSeverityColor(alert.severity)}
+                    color={alert.severity === 'high' ? 'error' : 'warning'}
                     sx={{ mr: 1 }}
                   />
                   {format(new Date(alert.timestamp), 'PPp')}

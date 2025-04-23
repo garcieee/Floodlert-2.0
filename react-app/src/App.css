@@ -40,3 +40,26 @@
 .read-the-docs {
   color: #888;
 }
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.marker-cluster-small {
+  background-color: rgba(181, 226, 140, 0.6);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(241, 211, 87, 0.6);
+}
+
+.marker-cluster-large {
+  background-color: rgba(253, 156, 115, 0.6);
+}
