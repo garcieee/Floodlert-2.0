@@ -1,25 +1,27 @@
-import { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+// src/App.jsx
+import { useState } from 'react'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import { createTheme } from '@mui/material/styles'
+import Layout from './components/Layout'
+import './App.css'
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+})
 
 function App() {
-  const [floodAlerts, setFloodAlerts] = useState([])
-
   return (
-    <div className="app">
-      <h1>Flood Alert Map</h1>
-      <MapContainer 
-        center={[51.505, -0.09]} // Set this to your desired initial location
-        zoom={13} 
-        style={{ height: '500px', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        {/* Markers for flood alerts will go here */}
-      </MapContainer>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Layout />
+    </ThemeProvider>
   )
 }
 
