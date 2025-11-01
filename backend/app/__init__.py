@@ -1,0 +1,2 @@
+"""FloodLert AI Backend Application."""
+

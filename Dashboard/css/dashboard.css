@@ -1,0 +1,147 @@
+/* General styles for consistency */
+QWidget {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    background-color: #1e1e2f; /* Dark blue-ish background */
+    color: #ffffff; /* White text */
+    margin: 0;
+    padding: 0;
+}
+
+/* Dashboard Styles */
+QFrame {
+    border-radius: 12px;
+    background-color: #2d2d3c; /* Slightly lighter dark background */
+    border: 1px solid #3e4451; /* Subtle dark border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); /* Subtle shadow for depth */
+}
+
+QLabel {
+    font-size: 16px;
+    color: #c8d1e0; /* Subtle light gray for readability */
+    font-weight: 500;
+    padding: 10px;
+}
+
+/* Styling for stacked widgets */
+QStackedWidget {
+    background-color: #2d2d3c; /* Match the frame background */
+    border-radius: 12px;
+    border: 1px solid #3e4451;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* ComboBox styling */
+QComboBox {
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #3e4451; /* Subtle dark border */
+    background-color: #3e4451; /* Slightly lighter dark for combo box */
+    color: #ffffff;
+    margin: 5px 0;
+}
+
+QComboBox:focus {
+    border-color: #4d78cc; /* Highlighted blue border */
+}
+
+QComboBox::drop-down {
+    border: none;
+    background: transparent;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(arrow-icon.png); /* Replace with your arrow icon path */
+    width: 12px;
+    height: 12px;
+    margin: 2px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #2d2d3c;
+    border: 1px solid #4b4b5e;
+    color: #ffffff;
+    selection-background-color: #444455;
+    selection-color: #ffffff;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+/* Button styling */
+QPushButton {
+    font-size: 12px;
+    padding: 10px 16px;
+    background-color: #4d78cc; /* Modern blue for buttons */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;
+    margin: 5px 0;
+}
+
+QPushButton:hover {
+    background-color: #3c5f99; /* Darker blue on hover */
+}
+
+QPushButton:pressed {
+    background-color: #2d466e; /* Even darker blue on press */
+}
+
+/* Scroll bar styling for QScrollArea */
+QScrollBar:vertical {
+    background-color: #2d2d3c;
+    width: 12px;
+    margin: 0px 3px 0px 3px;
+    border: none;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #4d78cc;
+    min-height: 25px;
+    border-radius: 6px;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    background: none;
+    height: 0px;
+}
+
+/* Table styling */
+QTableWidget {
+    background-color: #2d2d3c;
+    border: 1px solid #3e4451;
+    color: #ffffff;
+    outline-color: #3e4451;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+QTableWidget::item {
+    padding: 10px;
+    color: #c8d1e0; /* Light gray text */
+}
+
+QTableWidget::item:selected {
+    background-color: #4d78cc;
+    color: white;
+}
+
+/* Toolbar styling */
+QToolBar {
+    background-color: #2d2d3c;
+    border-bottom: 1px solid #3e4451;
+    padding: 8px;
+    color: #c8d1e0; /* Light gray for icons/text */
+}
+
+QToolBar::handle {
+    background-color: #4d78cc;
+    width: 6px;
+    border-radius: 3px;
+    margin: 2px;
+}

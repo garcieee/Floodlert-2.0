@@ -1,0 +1,73 @@
+/* General window styles */
+QWidget {
+    background-color: #1e1e2f; /* Dark blue-ish background */
+    font-family: 'Segoe UI', sans-serif; /* Modern font */
+    color: #ffffff; /* White text for labels and general text */
+}
+
+/* Title styling */
+QLabel {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    color: #9da5b4; /* Subtle gray for labels */
+}
+
+/* Input fields (QLineEdit) styling */
+QLineEdit {
+    border: 2px solid #3e4451; /* Subtle dark border */
+    border-radius: 10px; /* Slightly rounded edges */
+    padding: 10px;
+    font-size: 16px;
+    color: #ffffff; /* White text for input */
+    background-color: #2d2d3c; /* Slightly lighter dark background */
+    width: 300px;
+}
+
+QLineEdit:focus {
+    border: 2px solid #4d78cc; /* Highlighted border when focused */
+}
+
+/* Buttons styling */
+QPushButton {
+    background-color: #4d78cc; /* Nice dark blue for the button */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    width: 300px;
+    text-transform: uppercase;
+}
+
+QPushButton:hover {
+    background-color: #3c5f99; /* Slightly darker blue on hover */
+}
+
+QPushButton:pressed {
+    background-color: #2d466e; /* Even darker blue when pressed */
+}
+
+/* Align content vertically with spacing */
+QVBoxLayout {
+    margin: 40px;
+    padding: 20px;
+}
+
+/* Adjust spacing for input and buttons */
+QVBoxLayout > * {
+    margin-bottom: 15px; /* Add spacing between elements */
+}
+
+/* Styling for the window title area */
+QMainWindow {
+    background-color: #1e1e2f;
+    color: #ffffff;
+}
+
+/* Placeholder text color for QLineEdit */
+QLineEdit::placeholder {
+    color: #707a8a; /* Subtle gray for placeholders */
+}
