@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+torch
+xarray
+cfgrib
+rasterio
+geopandas
+Pillow
+httpx
+numpy
+pytest
+python-dotenv
